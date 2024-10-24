@@ -7,43 +7,7 @@
 
 class List
 {
-    struct Node
-    {
-    public:
-        Node *next{nullptr};
-        Node *prev{nullptr};
-        int value{0};
-
-        //Methods
-        Node() = default;
-        ~Node() = default;
-
-    };
 public:
-    //According to the fact that I didn't understand how to write this class after, I decided to write it right here
-    class iterator
-            {
-    public:
-        ~iterator();
-        iterator(Node* node){
-            node = currentNode;
-
-        }
-        iterator(const iterator &){
-
-        }
-        iterator(int *);
-        iterator &operator++();
-        iterator operator++(int);
-        iterator &operator--();
-        iterator operator--(int);
-        int& operator*();
-        int* operator->();
-        friend bool operator==(const iterator &, const iterator &);
-        friend bool operator!=(const iterator &, const iterator &);
-    private:
-        Node* currentNode;
-            };
 
     //Methods
     ~List(); // Just clear but destructor :)
@@ -140,6 +104,62 @@ public:
     bool contains(int n);
 
     unsigned int count(int n);
+
+    struct Node
+    {
+    public:
+        Node *next{nullptr};
+        Node *prev{nullptr};
+        int value{0};
+
+        //Methods
+        Node() = default;
+        ~Node() = default;
+
+    };
+
+private:
+    Node *head{nullptr};
+    Node *tail{nullptr};
+    unsigned int size{0};
+};
+//LAB - 4. Iterators;
+//According to the fact that I didn't understand how to write this class after, I decided to write it right here
+class iterator
+{
+public:
+    ~iterator(){
+        //doesn't need as all
+    }
+
+    iterator(List::Node* node){
+        currentNode = node;
+    }
+    iterator(const iterator &otherIterator)
+    {
+        this->currentNode = otherIterator.currentNode;
+    }
+
+    iterator(int *otherIterator){
+
+    }
+    iterator &operator++()
+    {
+        while(currentNode != nullptr)
+        currentNode = currentNode->next;
+    }
+    iterator operator++(int)
+    {
+        
+    }
+    iterator &operator--();
+    iterator operator--(int);
+    int& operator*();
+    int* operator->();
+    friend bool operator==(const iterator &, const iterator &);
+    friend bool operator!=(const iterator &, const iterator &);
+
+
 //    ////////////
 //    //newMethods
 //    List(iterator, iterator);
@@ -149,11 +169,8 @@ public:
 //    auto rend();
 //    static bool is_equal(const abstract_data_t&, const abstract_data_t&);
 //    void assign(iterator, iterator);
-
 private:
-    Node *head{nullptr};
-    Node *tail{nullptr};
-    unsigned int size{0};
+    List::Node* currentNode;
 };
 
 void List::clear()
