@@ -1,0 +1,154 @@
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <unordered_map> 
+
+class List
+{
+    struct Node
+    {
+        Node *next{nullptr};
+        Node *prev{nullptr};
+        int value{0};
+
+        Node() = default;
+        ~Node() = default;
+    };
+
+public:
+    List() = default;
+    ~List();
+    void pushBack(int data);
+    std::vector<int> filterStartsWith(int prefix);
+    double calculateMean(const std::vector<int>& data);
+    //Median is logically the half of value, so it is equal of second Quartile. 
+    double calculateMedian(const std::vector<int>& data);
+    double calculateQuartile(const std::vector<int>& data, double quartile);
+    int calculateMode(const std::vector<int>& data);
+    double calculateRange(const std::vector<int>& data);
+
+private:
+    Node *head{nullptr};
+    Node *tail{nullptr};
+    unsigned int size{0};
+};
+
+List::~List()
+{
+    Node* currentNode = head;
+    while(currentNode != nullptr)
+    {
+        Node* nextNode = currentNode->next;
+        delete currentNode;
+        currentNode = nextNode;
+    }
+}
+
+void List::pushBack(int data)
+{
+    Node *newNode = new Node();
+    newNode->value = data;
+    if (size == 0)
+    {
+        head = newNode;
+        tail = newNode;
+    }
+    else
+    {
+        if (tail != nullptr) {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+    }
+    size++;
+}
+
+std::vector<int> List::filterStartsWith(int prefix)
+{
+    std::vector<int> filtered;
+    Node *current = head;
+    while (current != nullptr)
+    {
+        if (std::to_string(current->value).rfind(std::to_string(prefix), 0) == 0)
+            filtered.push_back(current->value);
+        current = current->next;
+    }
+    return filtered;
+}
+
+double List::calculateMean(const std::vector<int>& data)
+{
+    if (data.empty()) return 0;
+    double sum = 0;
+    for (int num : data) sum += num;
+    return sum / data.size();
+}
+
+double List::calculateMedian(const std::vector<int>& data)
+{
+    if (data.empty()) return 0;
+    std::vector<int> sortedData = data;
+    std::sort(sortedData.begin(), sortedData.end());
+    int n = sortedData.size();
+    if (n % 2 == 0) return (sortedData[n / 2 - 1] + sortedData[n / 2]) / 2.0;
+    else return sortedData[n / 2];
+}
+
+double List::calculateQuartile(const std::vector<int>& data, double quartile)
+{
+    if (data.empty()) return 0;
+    std::vector<int> sortedData = data;
+    std::sort(sortedData.begin(), sortedData.end());
+    double pos = quartile * (sortedData.size() - 1);
+    int low = std::floor(pos);
+    int high = std::ceil(pos);
+    return sortedData[low] + (pos - low) * (sortedData[high] - sortedData[low]);
+}
+
+int List::calculateMode(const std::vector<int>& data)
+{
+    if (data.empty()) return 0;
+    std::unordered_map<int, int> frequency; 
+    for (int num : data) frequency[num]++;
+    int mode = data[0], maxFreq = 0;
+    for (const auto& pair : frequency)
+    {
+        if (pair.second > maxFreq)
+        {
+            maxFreq = pair.second;
+            mode = pair.first;
+        }
+    }
+    return mode;
+}
+
+double List::calculateRange(const std::vector<int>& data)
+{
+    if (data.empty()) return 0;
+    auto [minIt, maxIt] = std::minmax_element(data.begin(), data.end());
+    return *maxIt - *minIt;
+}
+
+int main()
+{
+    List list;
+    list.pushBack(4210);
+    list.pushBack(4230);
+    list.pushBack(4260);
+    list.pushBack(4290);
+    list.pushBack(4320);
+
+    auto filteredData = list.filterStartsWith(42);
+
+    std::cout << "Mean: " << list.calculateMean(filteredData) << std::endl;
+    std::cout << "Median: " << list.calculateMedian(filteredData) << std::endl;
+    std::cout << "1st Quartile: " << list.calculateQuartile(filteredData, 0.25) << std::endl;
+    std::cout << "3rd Quartile: " << list.calculateQuartile(filteredData, 0.75) << std::endl;
+    std::cout << "Mode: " << list.calculateMode(filteredData) << std::endl;
+    std::cout << "Range: " << list.calculateRange(filteredData) << std::endl;
+
+    return 0;
+}
