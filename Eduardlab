@@ -105,8 +105,8 @@ public:
         size = 0;
     }
 
-    // I create size_t index because to avoid warning in 111 stroke. size_t size + int index is strange.
-    // And i create more simple code. It looks better.
+    // I created size_t index because to avoid warning in 111 stroke. size_t size + int index is strange.
+    // And i created more simple code. It looks better.
     int at(size_t index) const {
             if (index < 0)
                 index = size + index;
