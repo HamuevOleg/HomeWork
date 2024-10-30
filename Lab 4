@@ -1,288 +1,540 @@
-#include <iostream>
-#include <algorithm>
-#include <stdexcept>
 #include <cassert>
+#include <iostream>
 #include <sstream>
 
-class Stack {
-private:
-    int* data;
-    size_t capacity;
-    size_t size;
+//doubleLinkedList :O
 
+class List
+{
 public:
-    class iterator {
+    //Methods
+    ~List(); // Just clear but destructor :)
+    List();  // Create a list with nothing but constructor :|
+    List(const List& copyList); // Something like make copy but constructor :(
+    List(List&&) noexcept;
+    List(unsigned int n); // Just create a clear value list with some size but constructor :|
+    List(const int a[], size_t n); //Something like Make From array but constructor :|
+
+
+    void pushFront(int data);
+    void pushBack(int data);
+    void popFront();
+    void popBack();
+
+    int at(int index);
+    bool isEqual(const List *compare_with_list) const;
+    unsigned int length() const;
+    bool empty() const;
+
+    void resize(unsigned int n);
+    void assign(unsigned int i, int v);
+    void swap(List& a);
+    void print();
+    void clear();
+
+    ////////////////////////
+    //new methods&operators:
+    List &operator=(const List &copyList);
+    List &operator=(List &&moveList) noexcept;
+
+    friend bool operator==(const List &leftSideOfEqual, const List &rightSideOfEqual);
+    friend bool operator!=(const List &leftSideOfEqual, const List &rightSideOfEqual);
+
+    friend bool operator<(const List &leftSideOfEqual, const List &rightSideOfEqual);
+
+    friend bool operator>(const List &leftSideOfEqual, const List &rightSideOfEqual)
+    {
+        return rightSideOfEqual < leftSideOfEqual;
+    }
+
+    friend bool operator<=(const List&leftSideOfEqual, const List&rightSideOfEqual)
+    {
+        return !(leftSideOfEqual > rightSideOfEqual);
+    }
+
+    friend bool operator>=(const List &leftSideOfEqual, const List &rightSideOfEqual)
+    {
+        return !(leftSideOfEqual < rightSideOfEqual);
+    }
+
+    int operator[](size_t index) const
+    {
+        Node *currentNode = this->head;
+        {
+            for (unsigned int i = 0; i < index; ++i) {
+                currentNode = currentNode->next;
+            }
+            return currentNode->value;
+        }
+
+    }
+
+    int &operator[](size_t index)
+    {
+        Node *currentNode = this->head;
+        for (unsigned int i = 0; i < index; ++i) {
+            currentNode = currentNode->next;
+        }
+        return currentNode->value;
+
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const List &list)
+    {
+        List::Node *current = list.head;
+        while (current != nullptr) {
+            os << current->value << " ";
+            current = current->next;
+        }
+        return os;
+    }
+
+    friend std::istream &operator>>(std::istream &is, List &list)
+    {
+        int value{0};
+        list.clear();
+        while (is >> value) {
+            list.pushBack(value);
+        }
+        return is;
+    }
+
+    bool contains(int n);
+
+    unsigned int count(int n);
+
+
+
+    //newMethods LAB - 4;
+
+    List(iterator, iterator);
+    auto begin();
+    auto end();
+    auto rbegin();
+    auto rend();
+    static bool is_equal(const List&, const List&);
+    void assign(iterator, iterator);
+
+    struct Node
+    {
     public:
-        iterator() : ptr(nullptr) {}
-        iterator(int* p) : ptr(p) {}
-        iterator(const iterator& other) : ptr(other.ptr) {}
+        Node *next{nullptr};
+        Node *prev{nullptr};
+        int value{0};
 
-        iterator& operator++() {
-            ++ptr;
-            return *this;
-        }
+        //Methods
+        Node() = default;
+        ~Node() = default;
 
-        iterator operator++(int) {
-            iterator temp = *this;
-            ++ptr;
-            return temp;
-        }
-
-        iterator& operator--() {
-            --ptr;
-            return *this;
-        }
-
-        iterator operator--(int) {
-            iterator temp = *this;
-            --ptr;
-            return temp;
-        }
-
-        int& operator*() {
-            return *ptr;
-        }
-
-        int* operator->() {
-            return ptr;
-        }
-
-        friend bool operator==(const iterator& lhs, const iterator& rhs) {
-            return lhs.ptr == rhs.ptr;
-        }
-
-        friend bool operator!=(const iterator& lhs, const iterator& rhs) {
-            return !(lhs == rhs);
-        }
-
-    private:
-        int* ptr;
     };
 
-    Stack() {
-        data = nullptr;
-        capacity = 0;
-        size = 0;
-    }
-
-    Stack(size_t initial_capacity) {
-        data = new int[initial_capacity];
-        capacity = initial_capacity;
-        size = 0;
-    }
-
-    Stack(const int* array, size_t array_size) {
-        data = new int[array_size];
-        capacity = array_size;
-        size = array_size;
-        std::copy(array, array + array_size, data);
-    }
-
-    Stack(const Stack& other) {
-        data = new int[other.capacity];
-        capacity = other.capacity;
-        size = other.size;
-        std::copy(other.data, other.data + other.size, data);
-    }
-
-    Stack(Stack&& other) noexcept {
-        data = other.data;
-        capacity = other.capacity;
-        size = other.size;
-        other.data = nullptr;
-        other.capacity = 0;
-        other.size = 0;
-    }
-
-    ~Stack() {
-        delete[] data;
-    }
-
-    void clear() {
-        delete[] data;
-        data = nullptr;
-        capacity = 0;
-        size = 0;
-    }
-
-    int at(int index) const {
-        if (index < 0) {
-            index = size + index;
-        }
-        if (index < 0 || index >= static_cast<int>(size)) {
-            if (index < 0) {
-                return data[0];
-            } else {
-                return data[size - 1];
-            }
-        }
-        return data[index];
-    }
-
-    void resize(size_t new_size) {
-        if (new_size == capacity) return;
-
-        int* new_data = new int[new_size];
-        size_t min_size = std::min(size, new_size);
-
-        std::copy(data, data + min_size, new_data);
-
-        if (new_size > size) {
-            std::fill(new_data + size, new_data + new_size, 0);
-        }
-
-        delete[] data;
-        data = new_data;
-        capacity = new_size;
-        size = min_size;
-    }
-
-    void assign(size_t count, int value) {
-        if (count > capacity) {
-            resize(count);
-        }
-        std::fill(data, data + count, value);
-        size = count;
-    }
-
-    bool empty() const {
-        return size == 0;
-    }
-
-    void swap(Stack& other) noexcept {
-        std::swap(data, other.data);
-        std::swap(capacity, other.capacity);
-        std::swap(size, other.size);
-    }
-
-    size_t length() const {
-        return size;
-    }
-
-    iterator begin() {
-        return iterator(data);
-    }
-
-    iterator end() {
-        return iterator(data + size);
-    }
-
-    iterator rbegin() {
-        return iterator(data + size - 1);
-    }
-
-    iterator rend() {
-        return iterator(data - 1);
-    }
-
-    static bool is_equal(const Stack& lhs, const Stack& rhs) {
-        if (lhs.size != rhs.size) return false;
-        return std::equal(lhs.data, lhs.data + lhs.size, rhs.data);
-    }
-
-    static void print(const Stack& stack) {
-        for (size_t i = 0; i < stack.size; ++i) {
-            std::cout << stack.data[i] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    Stack& operator=(const Stack& other) {
-        if (this == &other) return *this;
-
-        int* new_data = new int[other.capacity];
-        std::copy(other.data, other.data + other.size, new_data);
-
-        delete[] data;
-        data = new_data;
-        capacity = other.capacity;
-        size = other.size;
-
-        return *this;
-    }
-
-    Stack& operator=(Stack&& other) noexcept {
-        if (this == &other) return *this;
-
-        delete[] data;
-
-        data = other.data;
-        capacity = other.capacity;
-        size = other.size;
-
-        other.data = nullptr;
-        other.capacity = 0;
-        other.size = 0;
-
-        return *this;
-    }
-
-    friend bool operator==(const Stack& lhs, const Stack& rhs) {
-        if (lhs.size != rhs.size) return false;
-        return std::equal(lhs.data, lhs.data + lhs.size, rhs.data);
-    }
-
-    friend bool operator!=(const Stack& lhs, const Stack& rhs) {
-        return !(lhs == rhs);
-    }
-
-    friend bool operator<(const Stack& lhs, const Stack& rhs) {
-        return std::lexicographical_compare(lhs.data, lhs.data + lhs.size, rhs.data, rhs.data + rhs.size);
-    }
-
-    friend bool operator>(const Stack& lhs, const Stack& rhs) {
-        return rhs < lhs;
-    }
-
-    friend bool operator<=(const Stack& lhs, const Stack& rhs) {
-        return !(rhs < lhs);
-    }
-
-    friend bool operator>=(const Stack& lhs, const Stack& rhs) {
-        return !(lhs < rhs);
-    }
-
-    friend std::istream& operator>>(std::istream& in, Stack& stack) {
-        for (size_t i = 0; i < stack.capacity; ++i) {
-            in >> stack.data[i];
-        }
-        stack.size = stack.capacity;
-        return in;
-    }
-
-    friend std::ostream& operator<<(std::ostream& out, const Stack& stack) {
-        for (size_t i = 0; i < stack.size; ++i) {
-            out << stack.data[i] << " ";
-        }
-        return out;
-    }
-
-    int& operator[](size_t index) {
-        return data[index];
-    }
-
-    const int& operator[](size_t index) const {
-        return data[index];
-    }
-
-    size_t count(int value) const {
-        return std::count(data, data + size, value);
-    }
-
-    bool contains(int value) const {
-        return std::find(data, data + size, value) != data + size;
-    }
+private:
+    Node *head{nullptr};
+    Node *tail{nullptr};
+    unsigned int size{0};
 };
 
-int main() {
+
+class iterator {
+public:
+    ~iterator()
+    {
+
+    }
+
+    iterator(List::Node* newNode)
+    {
+        newNode = nullptr;
+    }
+    iterator(const iterator &);
+    iterator(int *);
+    iterator &operator++();
+    iterator operator++(int);
+    iterator &operator--();
+    iterator operator--(int);
+    int& operator*();
+    int* operator->();
+    friend bool operator==(const iterator &, const iterator &);
+    friend bool operator!=(const iterator &, const iterator &);
+private:
+};
+
+
+
+
+void List::clear()
+{
+    Node* currentNode = head;
+    while(currentNode != nullptr)
+    {
+        Node* nextNode = currentNode->next;
+        delete currentNode;
+        currentNode = nextNode;
+    }
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+}
+List::~List ()
+{
+    clear();
+}
+
+List::List ()
+{
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+}
+
+void List::pushFront(int data)
+{
+    Node* newNodeInFront = new Node();
+    newNodeInFront->value = data;
+
+    if (size == 0)
+    {
+        head = newNodeInFront;
+        tail = newNodeInFront;
+    }
+    else
+    {
+        newNodeInFront->next = head;
+        head->prev = newNodeInFront;
+        head = newNodeInFront;
+    }
+    size++;
+}
+
+void List::pushBack(int data)
+{
+    Node *newNodeInBack = new Node();
+    newNodeInBack->value = data;
+
+    if (size == 0)
+    {
+        head = newNodeInBack;
+        tail = newNodeInBack;
+    }
+    else
+    {
+        newNodeInBack->prev = tail;
+        tail->next = newNodeInBack;
+        tail = newNodeInBack;
+    }
+    size++;
+}
+
+//Main constructors realization
+
+// Just create a clear value list with some size but constructor :|
+List::List(unsigned int n)
+{
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+    while (n != 0) {
+        this->pushBack(0);
+        n--;
+    }
+}
+
+//Something like Make From array but constructor :|
+List::List(const int a[], size_t n)
+{
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+
+    for(int i = 0; i < n; i++)
+        this->pushBack(a[i]);
+}
+
+List::List(const List &copyList)
+{
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+
+    Node* currentNode = copyList.head;
+    while (currentNode != nullptr) {
+        pushBack(currentNode->value);
+        currentNode = currentNode->next;
+    }
+}
+
+List::List(List&& other) noexcept
+{
+    head = other.head;
+    tail = other.tail;
+    size = other.size;
+    other.head = nullptr;
+    other.tail = nullptr;
+    other.size = 0;
+}
+//Constructor finish
+void List::popFront()
+{
+    Node* NodeToRemoveInFront = head;
+    if (size == 0)
+    {
+        return;
+    }
+    else if (size == 1)
+    {
+        head = nullptr;
+        tail = nullptr;
+    }
+    else
+    {
+        head = head->next;
+        head->prev = nullptr;
+    }
+    delete NodeToRemoveInFront;
+    size--;
+}
+
+void List::popBack()
+{
+    Node* NodeToRemoveInBack = tail;
+    if (size == 0)
+    {
+        return;
+    }
+    else if ( size == 1)
+    {
+        head = nullptr;
+        tail = nullptr;
+    }
+    else
+    {
+        tail = tail->prev;
+        tail->next = nullptr;
+    }
+    delete NodeToRemoveInBack;
+    size--;
+}
+
+int List::at(int index)
+{
+    if ( index >= 0 && index < size)
+    {
+        Node* currentNode = head;
+        while(index > 0)
+        {
+            currentNode = currentNode->next;
+            index--;
+        }
+        return currentNode->value;
+    }
+    else
+        return 0;
+}
+
+unsigned int List::length() const
+{
+    return size;
+}
+
+bool List::empty() const
+{
+    return (size == 0);
+}
+
+bool List::isEqual (const List *compare_with_list) const
+{
+    if (size != compare_with_list->size)
+        return false;
+
+    Node* currentNodeOfOrgList = head;
+    Node* currentNodeOfListWhichIsWillBeCompared = compare_with_list->head;
+    for(int i = 0; i < size; i++)
+    {
+        if ( currentNodeOfOrgList->value != currentNodeOfListWhichIsWillBeCompared->value)
+            return false;
+        currentNodeOfOrgList =currentNodeOfOrgList->next;
+        currentNodeOfListWhichIsWillBeCompared = currentNodeOfListWhichIsWillBeCompared->next;
+
+    }
+    return true;
+}
+
+void List::resize(unsigned int n)
+{
+    if (n > size) {
+        while (size < n) {
+            pushBack(0);
+        }
+    } else if (n < size) {
+        while (size > n) {
+            popBack();
+        }
+    }
+}
+
+void List::assign(unsigned int i, int v)
+{
+    while (size > 0)
+        popBack();
+    for (int j=0; j<i; j++)
+        pushBack(v);
+}
+
+void List::swap(List &a)
+{
+    Node *currentHead = head;
+    head = a.head;
+    a.head = currentHead;
+
+    Node *currentTail = tail;
+    tail = a.tail;
+    a.tail = currentTail;
+
+    unsigned int currentSize = size;
+    size = a.size;
+    a.size = currentSize;
+}
+
+void List::print()
+{
+    Node* newNode = head;
+    for (int i=0; i<size; i++) {
+        std::cout << newNode->value << " ";
+        newNode = newNode->next;
+    }
+}
+//operators overloading&newMethods:
+
+List &List::operator=(const List &copyList)
+{
+    if(this == &copyList)
+        return *this;
+
+    else if (copyList.head == nullptr)
+        return *this;
+
+    else
+    {
+        clear();
+
+        Node* currentCopyNode = copyList.head;
+        Node* previousNewNode = nullptr;
+        for (unsigned int i = 0; i < copyList.size; i++)
+        {
+            Node* newNode = new Node();
+            newNode->value = currentCopyNode->value;
+
+            if (i == 0) {
+                this->head = newNode;
+            } else if (previousNewNode != nullptr) {
+                previousNewNode->next = newNode;
+                newNode->prev = previousNewNode;
+            }
+
+            previousNewNode = newNode;
+            currentCopyNode = currentCopyNode->next;
+        }
+
+        this->tail = previousNewNode;
+        this->size = copyList.size;
+
+        return *this;
+    }
+}
+
+List &List::operator=(List &&moveList) noexcept
+{
+    if(this == &moveList)
+        return *this;
+
+    else if (moveList.head == nullptr)
+        return *this;
+
+    else
+    {
+        clear();
+        this->head = moveList.head;
+        this->tail = moveList.tail;
+        this->size = moveList.size;
+
+        moveList.head = nullptr;
+        moveList.tail = nullptr;
+        moveList.size = 0;
+        return *this;
+    }
+}
+
+bool operator==(const List &leftSideOfEqual, const List &rightSideOfEqual)
+{
+    leftSideOfEqual.head == rightSideOfEqual.head;
+    return leftSideOfEqual.isEqual(&rightSideOfEqual);
+}
+
+bool operator!=(const List &leftSideOfEqual, const List &rightSideOfEqual)
+{
+    return !(leftSideOfEqual == rightSideOfEqual);
+}
+
+unsigned int List::count(int n)
+{
+    unsigned int count = 0;
+    Node* newNode = head;
+    while (newNode != nullptr)
+    {
+        if (newNode->value == n)
+            count++;
+        newNode = newNode->next;
+    }
+    return count;
+}
+
+bool List::contains(int n) {
+    Node *newNode = head;
+    for (unsigned i = 0; i < size; i++) {
+        if (n == newNode->value)
+            return true;
+        else
+            newNode = newNode->next;
+    }
+    return false;
+}
+
+bool operator<(const List &leftSideOfEqual, const List &rightSideOfEqual)
+{
+    List::Node *newNodeInLeft = leftSideOfEqual.head;
+    List::Node *newNodeInRight = rightSideOfEqual.head;
+
+    while (newNodeInLeft != nullptr && newNodeInRight != nullptr)
+    {
+        if (newNodeInLeft->value < newNodeInRight->value)
+            return true;
+        if (newNodeInLeft->value > newNodeInRight->value)
+            return false;
+
+        newNodeInLeft = newNodeInLeft->next;
+        newNodeInRight = newNodeInRight->next;
+    }
+
+    if (newNodeInLeft == nullptr && newNodeInRight != nullptr)
+        return true;
+    if (newNodeInLeft != nullptr && newNodeInRight == nullptr)
+        return false;
+
+    return false;
+}
+
+int main(int argc, char const *argv[]) {
     std::stringstream ss{"1 3 5 7 9"};
-    Stack a(5);
+    List a(5);
     ss >> a;
     assert(5 == a.length());
     assert(1 == a[0]);
     assert(9 == a[4]);
     std::cout << a;
-    Stack b{a};
+
+    std::cout <<"\n" << std::endl;
+
+    List b{a};
     assert(a == b);
     assert(3 == b[1]);
     assert(7 == b[3]);
@@ -292,19 +544,8 @@ int main() {
     assert(b < a);
     assert(a > b);
     std::cout << b;
-
-    std::cout << "используя итератор:" << std::endl;
-    for (auto it = a.begin(); it != a.end(); ++it) {
-        std::cout << *it << " ";
-    }
-    std::cout << std::endl;
-
-    for (auto it = a.rbegin(); it != a.rend(); --it) {
-        std::cout << *it << " ";
-    }
-    std::cout << std::endl;
-
-    Stack c;
+    std::cout <<"\n" << std::endl;
+    List c;
     assert(0 == c.length());
     c = b;
     assert(b == c);
@@ -312,7 +553,9 @@ int main() {
     assert(7 == c[1]);
     assert(7 == c[2]);
     assert(3 == c.count(7));
-    std::cout << "finished successfully!" << std::endl;
+    std::cout << c;
 
+    std::cout <<"\n" << std::endl;
+    std::cout <<"All tests passed" << std::endl;
     return 0;
 }
