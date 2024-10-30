@@ -1,8 +1,6 @@
 #include <cassert>
 #include <iostream>
-#include <sstream>
 #include <algorithm>
-#include <iterator>
 
 //doubleLinkedList :O
 
@@ -26,16 +24,33 @@ public:
 
     int at(int index);
     bool isEqual(const List *compareWithList) const;
-    //newMethodLAB4
-    static bool is_equal(const List &list1, const List &list2);
     unsigned int length() const;
     bool empty() const;
 
     void resize(unsigned int n);
-    void assign(unsigned int i, int v);
+    void assign(unsigned int i, int v)
+    {
+        clear();
+    for (unsigned int j = 0; j < i; ++j) {
+        pushBack(v);
+    }
+    }
+
     void swap(List& a);
     void print();
     void clear();
+    //newMethodLAB4
+    static bool is_equal(const List &FirstList, const List &SecondList);
+    void newAssign(Iterator begin , Iterator end)
+    {
+        clear();
+
+        for (Iterator it = begin; it != end; ++it) {
+            pushBack(*it);
+        }
+    }
+
+
 
     //new methods&operators:
     List &operator=(const List &copyList);
@@ -93,6 +108,25 @@ public:
         return os;
     }
 
+    auto begin() const
+    {
+        return Iterator(head);
+    }
+    auto end() const
+    {
+        return Iterator(nullptr);
+    }
+    auto rbegin() const
+    {
+        return Iterator(tail);
+    }
+    auto rend() const
+    {
+        return Iterator(nullptr);
+    }
+
+
+
     friend std::istream &operator>>(std::istream &is, List &list)
     {
         int value{0};
@@ -119,13 +153,14 @@ public:
         ~Node() = default;
 
     };
+
 class Iterator {
 public:
     Iterator()
     {
         currentNode = nullptr;
     }
-    Iterator(List::Node* newNode)
+    explicit Iterator(List::Node* newNode)
     {
         currentNode = newNode;
     }
@@ -180,29 +215,10 @@ public:
 
 
 private:
-    Node *head{nullptr};
-    Node *tail{nullptr};
     unsigned int size{0};
     List::Node* currentNode;
     friend class List;
 };
-
-Iterator begin() const
-{
-    return Iterator(head);
-}
-Iterator end() const
-{
-    return Iterator(nullptr);
-}
-Iterator rbegin() const
-{
-    return Iterator(tail);
-}
-Iterator rend() const
-{
-    return Iterator(nullptr);
-}
 
 private:
 List::Node* head{nullptr};
@@ -256,21 +272,20 @@ void List::pushFront(int data)
 
 void List::pushBack(int data)
 {
-    Node *newNodeInBack = new Node();
-    newNodeInBack->value = data;
+    if (tail != nullptr) {
+        Node *newNodeInBack = new Node();
+        newNodeInBack->value = data;
 
-    if (size == 0)
-    {
-        head = newNodeInBack;
-        tail = newNodeInBack;
+        if (size == 0) {
+            head = newNodeInBack;
+            tail = newNodeInBack;
+        } else {
+            newNodeInBack->prev = tail;
+            tail->next = newNodeInBack;
+            tail = newNodeInBack;
+        }
+        size++;
     }
-    else
-    {
-        newNodeInBack->prev = tail;
-        tail->next = newNodeInBack;
-        tail = newNodeInBack;
-    }
-    size++;
 }
 
 //Main constructors realization
@@ -390,14 +405,14 @@ bool List::empty() const
 }
 
 
-    bool List::isEqual(const List *compare_with_list) const {
-        if (size != compare_with_list->size)
+    bool List::isEqual(const List *compareWithList) const {
+        if (size != compareWithList->size)
             return false;
 
         auto it1 = this->begin();
-        auto it2 = compare_with_list->begin();
+        auto it2 = compareWithList->begin();
 
-        while (it1 != this->end() && it2 != compare_with_list->end()) {
+        while (it1 != this->end() && it2 != compareWithList->end()) {
             if (*it1 != *it2)
                 return false;
             ++it1;
@@ -436,12 +451,6 @@ void List::resize(unsigned int n)
     }
 }
 
-void List::assign(unsigned int i, int v) {
-    clear();
-    for (unsigned int j = 0; j < i; ++j) {
-        pushBack(v);
-    }
-}
 
 void List::swap(List &a)
 {
@@ -600,16 +609,26 @@ int main(int argc, char const *argv[])
     int array[] = {19, 47, 74, 91};
 
     List a(array, 4);
-    for (auto it = a.begin(); it != a.end(); ++it) std::cout << *it << " ";
+    for (auto it = a.begin(); it != a.end(); ++it)
+        std::cout << *it << " ";
+    std::cout << std::endl;
 
     List b(a.begin(), a.end());
     assert(List::is_equal(a, b));
-    for (auto &&it : b) std::cout << it << " ";
+    for (auto it : b)
+        std::cout << it << " ";
+    std::cout << std::endl;
 
     List c(b.begin(), b.end());
     assert(std::equal(c.begin(), c.end(), b.begin()));
-    for (auto it = c.rbegin(); it != c.rend(); ++it) std::cout << *it << " ";
+    for (auto it = c.rbegin(); it != c.rend(); ++it)
+        std::cout << *it << " ";
+    std::cout << std::endl;
 
     List d(c.rbegin(), c.rend());
-    for (auto &&it : d) std::cout << it << " ";
+    for (auto it : d)
+        std::cout << it << " ";
+    std::cout << std::endl;
+
+    return 0;
 }
