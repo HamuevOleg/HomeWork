@@ -105,18 +105,16 @@ public:
         size = 0;
     }
 
-    int at(int index) const {
-        if (index < 0) {
-            index = size + index;
-        }
-        if (index < 0 || index >= static_cast<int>(size)) {
-            if (index < 0) {
-                return data[0];
-            } else {
-                return data[size - 1];
-            }
-        }
-        return data[index];
+    // I create size_t index because to avoid warning in 111 stroke. size_t size + int index is strange.
+    // And i create more simple code. It looks better.
+    int at(size_t index) const {
+            if (index < 0)
+                index = size + index;
+
+            if (index < 0 || index >= static_cast<int>(size))
+                throw std::out_of_range("Index out of bounds");
+
+            return data[index];
     }
 
     void resize(size_t new_size) {
