@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iomanip>
-#include <cmath>
 #include <algorithm>
 using namespace std;
 
@@ -73,11 +72,6 @@ void GaussJordanElimination(double** matrix, int rows, int cols) {
     }
 }
 
-double numberModule(double x)
-{
-    return (x < 0) ? -x : x;
-}
-
 //(0,0) (0,1) (0,2) (0,3) (0,4) (0,5) (0,6) (0,7) (0,8)
 //(1,0) (1,1) (1,2) (1,3) (1,4) (1,5) (1,6) (1,7) (1,8)
 //(2,0) (2,1) (2,2) (2,3) (2,4) (2,5) (2,6) (2,7) (2,8)
@@ -88,70 +82,43 @@ double numberModule(double x)
 //(7,0) (7,1) (7,2) (7,3) (7,4) (7,5) (7,6) (7,7) (7,8)
 //(8,0) (8,1) (8,2) (8,3) (8,4) (8,5) (8,6) (8,7) (8,8)
 
-void checkAndSwap(double** matrix, int rows, int cols)
-{
-    if(cols == 2 && rows == 2)
-    {
-        if(numberModule(matrix[0][0]) < numberModule(matrix[0][1]))
-        {
-            if(numberModule(matrix[1][0]) > numberModule(matrix[1][1]))
-            {
-                swap(matrix[0][0], matrix[1][0]);
-                swap(matrix[0][1], matrix[1][1]);
-            }
-            else
-                cout << "Matrix can't be solved by using Seidel Method" << endl;
-        }
-    }
-    if(cols == 3 && rows == 3)
-    {
-        if(numberModule(matrix[0][0]) < numberModule(matrix[0][1]) + numberModule(matrix[0][2]))
-        {
-            if(numberModule(matrix[1][0]) > numberModule(matrix[1][1]) + numberModule(matrix[1][2]))
-            {
-                swap(matrix[0][0] , matrix[1][0]);
-                swap(matrix[0][1] , matrix[1][1]);
-                swap(matrix[0][2] , matrix[1][2]);
-            }
-            else if(numberModule(matrix[2][0]) > numberModule(matrix[2][1]) + numberModule(matrix[2][2]))
-            {
-                swap(matrix[0][0] , matrix[2][0]);
-                swap(matrix[0][1] , matrix[2][1]);
-                swap(matrix[0][2] , matrix[2][2]);
+void checkAndSwap(double** matrix, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        int maxRow = i;
+        double rowSum = 0;
+
+        for (int j = 0; j < cols; j++) {
+            if (j != i) {
+                rowSum += abs(matrix[i][j]);
             }
         }
-        else if(numberModule(matrix[1][1]) < numberModule(matrix[1][0]) + numberModule(matrix[1][2]))
-        {
-            if(numberModule(matrix[0][1]) > numberModule(matrix[0][0]) + numberModule(matrix[0][2]))
-            {
-                swap(matrix[1][0] , matrix[0][0]);
-                swap(matrix[1][1] , matrix[0][1]);
-                swap(matrix[1][2] , matrix[0][2]);
+
+        if (abs(matrix[i][i]) <= rowSum) {
+            bool found = false;
+
+            for (int k = i + 1; k < rows; k++) {
+                double potentialMaxValue = abs(matrix[k][i]);
+                double potentialRowSum = 0;
+
+                for (int j = 0; j < cols; j++) {
+                    if (j != i) {
+                        potentialRowSum += abs(matrix[k][j]);
+                    }
+                }
+
+                if (potentialMaxValue > potentialRowSum) {
+                    maxRow = k;
+                    found = true;
+                    break;
+                }
             }
-            else if(numberModule(matrix[2][1]) > numberModule(matrix[2][0]) + numberModule(matrix[2][2]))
-            {
-                swap(matrix[1][0] , matrix[2][0]);
-                swap(matrix[1][1] , matrix[2][1]);
-                swap(matrix[1][2] , matrix[2][2]);
-            }
-        }
-        else if(numberModule(matrix[2][2]) < numberModule(matrix[2][0]) + numberModule(matrix[2][1]))
-        {
-            if(numberModule(matrix[0][2]) > numberModule(matrix[0][0]) + numberModule(matrix[0][1]))
-            {
-                swap(matrix[2][0] , matrix[0][0]);
-                swap(matrix[2][1] , matrix[0][1]);
-                swap(matrix[2][2] , matrix[0][2]);
-            }
-            else if(numberModule(matrix[1][2]) > numberModule(matrix[1][0]) + numberModule(matrix[1][1]))
-            {
-                swap(matrix[2][0] , matrix[1][0]);
-                swap(matrix[2][1] , matrix[1][1]);
-                swap(matrix[2][2] , matrix[1][2]);
+
+            if (found) {
+                swap(matrix[i], matrix[maxRow]);
+            } else {
+                cout << "Failed to ensure diagonal dominance for row " << i + 1 << endl;
             }
         }
-        else
-            cout << "Matrix can't be solved by using Seidel Method" << endl;
     }
 }
 
@@ -169,8 +136,68 @@ void SeidelMethod(double** matrix, int rows, int cols) {
         cout << endl;
     }
 
-}
+    cout << "\nEquations ready for use with Seidel's method\n";
+    for (int i = 0; i < rows; i++) {
+        double diagElement = matrix[i][i];
+        cout << "x" << i + 1 << " = ";
 
+        for (int j = 0; j < cols; j++) {
+            if (j != i) {
+                double coefficient = -matrix[i][j] / diagElement;
+                cout << (coefficient >= 0 ? " + " : " - ") << abs(coefficient) << "*x" << j + 1;
+            }
+        }
+
+        double freeTerm = matrix[i][cols] / diagElement;
+        cout << " + " << freeTerm << endl;
+    }
+    //Method Realisation
+
+    double* x = new double[rows];
+    for (int i = 0; i < rows; i++) {
+        x[i] = 0;
+    }
+
+    cout << "\nStart of iterations of Seidel's method:\n";
+    bool continueIteration;
+    int iterationCount = 0;
+
+    do {
+        continueIteration = false;
+        iterationCount++;
+
+        for (int i = 0; i < rows; i++) {
+            double old_xi = x[i];
+            double sum = matrix[i][cols];
+
+            for (int j = 0; j < cols; j++) {
+                if (j != i) {
+                    sum -= matrix[i][j] * x[j];
+                }
+            }
+
+            x[i] = sum / matrix[i][i];
+
+            if (abs(x[i] - old_xi) > epsilon) {
+                continueIteration = true;
+            }
+        }
+
+        cout << "Iteration " << iterationCount << ": ";
+        for (int i = 0; i < rows; i++) {
+            cout << "x" << i + 1 << " = " << x[i] << " ";
+        }
+        cout << endl;
+
+    } while (continueIteration);
+
+    cout << "\nSolution\n";
+    for (int i = 0; i < rows; i++) {
+        cout << "x" << i + 1 << " = " << x[i] << endl;
+    }
+
+    delete[] x;
+}
 
 int main() {
     int rows, cols;
