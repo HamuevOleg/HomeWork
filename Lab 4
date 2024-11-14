@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <algorithm>
+#include <list>
 
 //doubleLinkedList :O
 
@@ -16,6 +17,7 @@ public:
     List(unsigned int n); // Just create a clear value list with some size but constructor :|
     List(const int a[], size_t n); //Something like Make From array but constructor :|
     List(Iterator begin, Iterator end);
+    List(std::reverse_iterator<Iterator> rbegin, std::reverse_iterator<Iterator> rend);
 
     void pushFront(int data);
     void pushBack(int data);
@@ -31,9 +33,9 @@ public:
     void assign(unsigned int i, int v)
     {
         clear();
-    for (unsigned int j = 0; j < i; ++j) {
-        pushBack(v);
-    }
+        for (unsigned int j = 0; j < i; ++j) {
+            pushBack(v);
+        }
     }
 
     void swap(List& a);
@@ -41,7 +43,7 @@ public:
     void clear();
     //newMethodLAB4
     static bool is_equal(const List &FirstList, const List &SecondList);
-    void newAssign(Iterator begin , Iterator end)
+    void newAssign(const Iterator& begin , const Iterator& end)
     {
         clear();
 
@@ -118,18 +120,16 @@ public:
     }
     auto rbegin() const
     {
-        return Iterator(tail);
+        return reverse_iterator(end());
     }
     auto rend() const
     {
-        return Iterator(nullptr);
+        return reverse_iterator(begin());
     }
-
-
 
     friend std::istream &operator>>(std::istream &is, List &list)
     {
-        int value{0};
+        int value = 0;
         list.clear();
         while (is >> value) {
             list.pushBack(value);
@@ -144,86 +144,90 @@ public:
     struct Node
     {
     public:
-        Node *next{nullptr};
-        Node *prev{nullptr};
-        int value{0};
+        Node *next = nullptr;
+        Node *prev = nullptr;
+        int value = 0;
 
-        //Methods
         Node() = default;
         ~Node() = default;
 
     };
 
-class Iterator {
-public:
-    Iterator()
-    {
-        currentNode = nullptr;
-    }
-    explicit Iterator(List::Node* newNode)
-    {
-        currentNode = newNode;
-    }
-    Iterator(const Iterator& other)
-    {
-        currentNode = other.currentNode;
-    }
+    class Iterator {
+    public:
+        using value_type = int;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::bidirectional_iterator_tag;
+        Iterator()
+        {
+            currentNode = nullptr;
+        }
 
-    Iterator& operator++() {
-        if (currentNode != nullptr)
-            currentNode = currentNode->next;
-        return *this;
-    }
+        explicit Iterator(List::Node* newNode)
+        {
+            currentNode = newNode;
+        }
+        Iterator(const Iterator& other)
+        {
+            currentNode = other.currentNode;
+        }
 
-    Iterator operator++(int) {
-        Iterator placeholderNode = *this;
-        ++(*this);
-        return placeholderNode;
-    }
+        Iterator& operator++() {
+            if (currentNode != nullptr)
+                currentNode = currentNode->next;
+            return *this;
+        }
 
-    Iterator& operator--() {
-        if (currentNode != nullptr)
-            currentNode = currentNode->prev;
-        return *this;
-    }
+        Iterator operator++(int) {
+            Iterator placeholderNode = *this;
+            ++(*this);
+            return placeholderNode;
+        }
 
-    Iterator operator--(int) {
-        Iterator placeholderNode = *this;
-        --(*this);
-        return placeholderNode;
-    }
-    // basically must return a reference to the node value that the iterator points to.
-    int& operator*() const
-    {
-        return currentNode->value;
-    }
-    // must returns a pointer to the node value.
-    int* operator->() const
-    {
-        return &(currentNode->value);
-    }
+        Iterator& operator--() {
+            if (currentNode != nullptr)
+                currentNode = currentNode->prev;
+            return *this;
+        }
 
-    friend bool operator==(const Iterator& leftIterator, const Iterator& rightIterator)
-    {
-        return leftIterator.currentNode == rightIterator.currentNode;
-    }
+        Iterator operator--(int) {
+            Iterator placeholderNode = *this;
+            --(*this);
+            return placeholderNode;
+        }
+        // basically must return a reference to the node value that the iterator points to.
+        int& operator*() const
+        {
+            return currentNode->value;
+        }
+        // must returns a pointer to the node value.
+        int* operator->() const
+        {
+            return &(currentNode->value);
+        }
 
-    friend bool operator!=(const Iterator& leftIterator, const Iterator& rightIterator)
-    {
-        return !(leftIterator == rightIterator);
-    }
+        friend bool operator==(const Iterator& leftIterator, const Iterator& rightIterator)
+        {
+            return leftIterator.currentNode == rightIterator.currentNode;
+        }
 
+        friend bool operator!=(const Iterator& leftIterator, const Iterator& rightIterator)
+        {
+            return !(leftIterator == rightIterator);
+        }
+
+
+    private:
+        unsigned int size = 0;
+        List::Node* currentNode;
+    };
+
+    using reverse_iterator = std::reverse_iterator<Iterator>;
 
 private:
-    unsigned int size{0};
-    List::Node* currentNode;
-    friend class List;
-};
-
-private:
-List::Node* head{nullptr};
-List::Node* tail{nullptr};
-unsigned int size{0};
+    List::Node* head = nullptr;
+    List::Node* tail = nullptr;
+    unsigned int size = 0;
 };
 
 void List::clear()
@@ -250,7 +254,6 @@ List::List ()
     tail = nullptr;
     size = 0;
 }
-
 void List::pushFront(int data)
 {
     Node* newNodeInFront = new Node();
@@ -272,7 +275,8 @@ void List::pushFront(int data)
 
 void List::pushBack(int data)
 {
-    if (tail != nullptr) {
+//    if (tail != nullptr)
+    {
         Node *newNodeInBack = new Node();
         newNodeInBack->value = data;
 
@@ -405,38 +409,38 @@ bool List::empty() const
 }
 
 
-    bool List::isEqual(const List *compareWithList) const {
-        if (size != compareWithList->size)
+bool List::isEqual(const List *compareWithList) const {
+    if (size != compareWithList->size)
+        return false;
+
+    auto it1 = this->begin();
+    auto it2 = compareWithList->begin();
+
+    while (it1 != this->end() && it2 != compareWithList->end()) {
+        if (*it1 != *it2)
             return false;
-
-        auto it1 = this->begin();
-        auto it2 = compareWithList->begin();
-
-        while (it1 != this->end() && it2 != compareWithList->end()) {
-            if (*it1 != *it2)
-                return false;
-            ++it1;
-            ++it2;
-        }
-        return true;
+        ++it1;
+        ++it2;
     }
-    bool List::is_equal(const List &FirstList, const List &SecondList)
-    {
-        if (FirstList.size != SecondList.size)
+    return true;
+}
+bool List::is_equal(const List &FirstList, const List &SecondList)
+{
+    if (FirstList.size != SecondList.size)
+        return false;
+
+    Node* currentNodeForFirstList = FirstList.head;
+    Node* currentNodeForSecondList = SecondList.head;
+
+    while (currentNodeForFirstList != nullptr && currentNodeForSecondList != nullptr) {
+        if (currentNodeForFirstList->value != currentNodeForSecondList->value) {
             return false;
-
-        Node* currentNodeForFirstList = FirstList.head;
-        Node* currentNodeForSecondList = SecondList.head;
-
-        while (currentNodeForFirstList != nullptr && currentNodeForSecondList != nullptr) {
-            if (currentNodeForFirstList->value != currentNodeForSecondList->value) {
-                return false;
-            }
-            currentNodeForFirstList = currentNodeForFirstList->next;
-            currentNodeForSecondList = currentNodeForSecondList->next;
         }
-        return true;
+        currentNodeForFirstList = currentNodeForFirstList->next;
+        currentNodeForSecondList = currentNodeForSecondList->next;
     }
+    return true;
+}
 
 void List::resize(unsigned int n)
 {
@@ -538,7 +542,6 @@ List &List::operator=(List &&moveList) noexcept
 
 bool operator==(const List &leftSideOfEqual, const List &rightSideOfEqual)
 {
-    leftSideOfEqual.head == rightSideOfEqual.head;
     return leftSideOfEqual.isEqual(&rightSideOfEqual);
 }
 
@@ -600,7 +603,16 @@ List::List(Iterator begin, Iterator end) {
     tail = nullptr;
     size = 0;
     for (Iterator it = begin; it != end; ++it) {
-    pushBack(*it);
+        pushBack(*it);
+    }
+}
+
+List::List(std::reverse_iterator<Iterator> rbegin, std::reverse_iterator<Iterator> rend){
+    head = nullptr;
+    tail = nullptr;
+    size = 0;
+    for (std::reverse_iterator<Iterator> it = rbegin; it != rend; ++it) {
+        pushBack(*it);
     }
 }
 
