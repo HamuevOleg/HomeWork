@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <list>
+#include <iterator>
 
 //doubleLinkedList :O
 
@@ -9,6 +10,8 @@ class List
 {
 public:
     class Iterator;
+    using ReverseIterator = std::reverse_iterator<Iterator>;
+
     //Methods
     ~List(); // Just clear but destructor :)
     List();  // Create a list with nothing but constructor :|
@@ -17,7 +20,14 @@ public:
     List(unsigned int n); // Just create a clear value list with some size but constructor :|
     List(const int a[], size_t n); //Something like Make From array but constructor :|
     List(Iterator begin, Iterator end);
-    List(std::reverse_iterator<Iterator> rbegin, std::reverse_iterator<Iterator> rend);
+    List(std::reverse_iterator<Iterator> rbegin, std::reverse_iterator<Iterator> rend) {
+        head = nullptr;
+        tail = nullptr;
+        size = 0;
+        for (auto it = rbegin; it != rend; ++it) {
+            pushBack(*it);
+        }
+    }
 
     void pushFront(int data);
     void pushBack(int data);
@@ -51,8 +61,6 @@ public:
             pushBack(*it);
         }
     }
-
-
 
     //new methods&operators:
     List &operator=(const List &copyList);
@@ -116,15 +124,17 @@ public:
     }
     auto end() const
     {
-        return Iterator(nullptr);
+        return Iterator(secretNode);
     }
     auto rbegin() const
     {
-        return reverse_iterator(end());
+        // return ReverseIterator(end());
+        return ReverseIterator(Iterator(tail));
     }
     auto rend() const
     {
-        return reverse_iterator(begin());
+        // return ReverseIterator(begin());
+        return ReverseIterator(Iterator(secretNode));
     }
 
     friend std::istream &operator>>(std::istream &is, List &list)
@@ -155,9 +165,13 @@ public:
 
     class Iterator {
     public:
+
         using value_type = int;
         using difference_type = std::ptrdiff_t;
+        using pointer = int*;
+        using reference = int&;
         using iterator_category = std::bidirectional_iterator_tag;
+
         Iterator()
         {
             currentNode = nullptr;
@@ -216,25 +230,21 @@ public:
             return !(leftIterator == rightIterator);
         }
 
-
     private:
         unsigned int size = 0;
         List::Node* currentNode;
     };
 
-    using reverse_iterator = std::reverse_iterator<Iterator>;
-
 private:
     List::Node* head = nullptr;
     List::Node* tail = nullptr;
     unsigned int size = 0;
+    Node *secretNode = nullptr;
 };
 
-void List::clear()
-{
+void List::clear() {
     Node* currentNode = head;
-    while(currentNode != nullptr)
-    {
+    while (currentNode != nullptr && currentNode != secretNode) {
         Node* nextNode = currentNode->next;
         delete currentNode;
         currentNode = nextNode;
@@ -242,10 +252,16 @@ void List::clear()
     head = nullptr;
     tail = nullptr;
     size = 0;
+
+    secretNode->prev = nullptr;
+    secretNode->next = nullptr;
 }
+
+
 List::~List ()
 {
     clear();
+    delete secretNode;
 }
 
 List::List ()
@@ -253,7 +269,11 @@ List::List ()
     head = nullptr;
     tail = nullptr;
     size = 0;
+    secretNode = new Node();
+    secretNode->prev = nullptr;
+    secretNode->next = nullptr;
 }
+
 void List::pushFront(int data)
 {
     Node* newNodeInFront = new Node();
@@ -273,23 +293,20 @@ void List::pushFront(int data)
     size++;
 }
 
-void List::pushBack(int data)
-{
-//    if (tail != nullptr)
-    {
-        Node *newNodeInBack = new Node();
-        newNodeInBack->value = data;
+void List::pushBack(int data) {
+    Node* newNodeInBack = new Node();
+    newNodeInBack->value = data;
 
-        if (size == 0) {
-            head = newNodeInBack;
-            tail = newNodeInBack;
-        } else {
-            newNodeInBack->prev = tail;
-            tail->next = newNodeInBack;
-            tail = newNodeInBack;
-        }
-        size++;
+    if (size == 0) {
+        head = newNodeInBack;
+        tail = newNodeInBack;
+    } else {
+        newNodeInBack->prev = tail;
+        tail->next = newNodeInBack;
+        tail = newNodeInBack;
     }
+
+    size++;
 }
 
 //Main constructors realization
@@ -542,6 +559,7 @@ List &List::operator=(List &&moveList) noexcept
 
 bool operator==(const List &leftSideOfEqual, const List &rightSideOfEqual)
 {
+    leftSideOfEqual.head == rightSideOfEqual.head;
     return leftSideOfEqual.isEqual(&rightSideOfEqual);
 }
 
@@ -603,15 +621,6 @@ List::List(Iterator begin, Iterator end) {
     tail = nullptr;
     size = 0;
     for (Iterator it = begin; it != end; ++it) {
-        pushBack(*it);
-    }
-}
-
-List::List(std::reverse_iterator<Iterator> rbegin, std::reverse_iterator<Iterator> rend){
-    head = nullptr;
-    tail = nullptr;
-    size = 0;
-    for (std::reverse_iterator<Iterator> it = rbegin; it != rend; ++it) {
         pushBack(*it);
     }
 }
