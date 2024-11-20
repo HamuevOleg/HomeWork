@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <vector>
 using namespace std;
 
 double** matrixCreation(int& rows, int& cols) {
@@ -17,9 +18,9 @@ double** matrixCreation(int& rows, int& cols) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols + 1; j++) {
             if (j < cols) {
-                cout << "Please write x" << j + 1 << " in equation " << i + 1 << ": ";
+                cout << "Please write x" << j + 1 << " in eq " << i + 1 << ": ";
             } else {
-                cout << "Please write result for equation " << i + 1 << ": ";
+                cout << "Please write res for eq " << i + 1 << ": ";
             }
             cin >> matrix[i][j];
         }
@@ -32,17 +33,97 @@ double** matrixCreation(int& rows, int& cols) {
         }
         cout << endl;
     }
-
     return matrix;
+}
+
+double** copyMatrix(double** originalMatrix, int rows, int cols) {
+    double** newMatrix = new double*[rows];
+    for (int i = 0; i < rows; i++) {
+        newMatrix[i] = new double[cols + 1];
+        for (int j = 0; j <= cols; j++) {
+            newMatrix[i][j] = originalMatrix[i][j];
+        }
+    }
+    return newMatrix;
+}
+
+int calculateRank(double** matrix, int rows, int cols) {
+    vector<bool> rowUsed(rows, false);
+    int rank = 0;
+
+    for (int col = 0; col < cols; ++col) {
+        int pivotRow = -1;
+        for (int row = 0; row < rows; ++row) {
+            if (!rowUsed[row] && matrix[row][col] != 0) {
+                pivotRow = row;
+                break;
+            }
+        }
+
+        if (pivotRow == -1) continue;
+
+        rowUsed[pivotRow] = true;
+        ++rank;
+
+        for (int row = 0; row < rows; ++row) {
+            if (row != pivotRow && matrix[row][col] != 0) {
+                double factor = matrix[row][col] / matrix[pivotRow][col];
+                for (int c = 0; c <= cols; ++c) {
+                    matrix[row][c] -= factor * matrix[pivotRow][c];
+                }
+            }
+        }
+    }
+
+    return rank;
+}
+
+void analyzeSolution(double** matrix, int rows, int cols) {
+    double** extendedMatrix = new double*[rows];
+    for (int i = 0; i < rows; ++i) {
+        extendedMatrix[i] = new double[cols + 1];
+        for (int j = 0; j <= cols; ++j) {
+            extendedMatrix[i][j] = matrix[i][j];
+        }
+    }
+
+    int rankMain = calculateRank(matrix, rows, cols);
+    int rankAugmented = calculateRank(extendedMatrix, rows, cols + 1);
+
+    for (int i = 0; i < rows; ++i) {
+        delete[] extendedMatrix[i];
+    }
+    delete[] extendedMatrix;
+
+    if (rankMain < rankAugmented) {
+        cout << "No solutions exist (inconsistent system)." << endl;
+    } else if (rankMain == cols) {
+        cout << "Unique solution exists." << endl;
+    } else {
+        cout << "Infinite solutions exist." << endl;
+        cout << "The basis of solutions is:" << endl;
+
+        for (int i = 0; i < rows; ++i) {
+            if (i >= rankMain) {
+                cout << "Free variable x" << i + 1 << endl;
+            }
+        }
+    }
 }
 
 void GaussJordanElimination(double** matrix, int rows, int cols) {
     for (int i = 0; i < rows; i++) {
-        double lead = matrix[i][i];
-        if (lead == 0) {
-            cout << "System can't be solved, because of division by zero" << endl;
-            return;
+        if (matrix[i][i] == 0) {
+            for (int k = i + 1; k < rows; k++) {
+                if (matrix[k][i] != 0) {
+                    swap(matrix[i], matrix[k]);
+                    break;
+                }
+            }
         }
+
+        double lead = matrix[i][i];
+        if (lead == 0) continue;
 
         for (int j = 0; j < cols + 1; j++) {
             matrix[i][j] /= lead;
@@ -58,7 +139,7 @@ void GaussJordanElimination(double** matrix, int rows, int cols) {
         }
     }
 
-    cout << "\nMatrix after Gauss-Jordan Elimination (Final Step):\n";
+    cout << "\nMatrix after Gauss-Jordan Elimination:\n";
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols + 1; j++) {
             cout << setw(10) << matrix[i][j] << " ";
@@ -66,10 +147,7 @@ void GaussJordanElimination(double** matrix, int rows, int cols) {
         cout << endl;
     }
 
-    cout << "\nSolution:\n";
-    for (int i = 0; i < rows; i++) {
-        cout << "x" << i + 1 << " = " << matrix[i][cols] << endl;
-    }
+    analyzeSolution(matrix, rows, cols);
 }
 
 //(0,0) (0,1) (0,2) (0,3) (0,4) (0,5) (0,6) (0,7) (0,8)
@@ -210,17 +288,25 @@ int main() {
         cin >> method;
 
         if (method == 1) {
-            GaussJordanElimination(matrix, rows, cols);
+            double** matrixCopy = copyMatrix(matrix, rows, cols);
+            GaussJordanElimination(matrixCopy, rows, cols);
+            for (int i = 0; i < rows; i++) {
+                delete[] matrixCopy[i];
+            }
+            delete[] matrixCopy;
         } else if (method == 2) {
-            SeidelMethod(matrix, rows, cols);
+            double** matrixCopy = copyMatrix(matrix, rows, cols);
+            SeidelMethod(matrixCopy, rows, cols);
+            for (int i = 0; i < rows; i++) {
+                delete[] matrixCopy[i];
+            }
+            delete[] matrixCopy;
         } else if (method == 3) {
             for (int i = 0; i < rows; i++) {
                 delete[] matrix[i];
             }
             delete[] matrix;
-
             return 0;
-
         } else {
             cout << "Invalid method selected. Please choose again." << endl;
             method = 0;
