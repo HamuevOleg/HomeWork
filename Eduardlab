@@ -272,27 +272,31 @@ public:
     }
 };
 
-int main() {
-    Stack stack1;
-    stack1.push(1);
-    stack1.push(2);
-    stack1.push(3);
-    stack1.push(4);
+int main(int argc, char const *argv[])
+{
+    int array[] = {19, 47, 74, 91};
 
-    for (auto it = stack1.begin(); it != stack1.end(); ++it) {
+    List a(array, 4);
+    for (auto it = a.begin(); it != a.end(); ++it)
         std::cout << *it << " ";
-    }
     std::cout << std::endl;
 
-    stack1.push_range({5, 6});
-    stack1.print();
+    List b(a.begin(), a.end());
+    assert(List::is_equal(a, b));
+    for (auto it : b)
+        std::cout << it << " ";
+    std::cout << std::endl;
 
-    stack1.emplace(7);
-    stack1.print();
+    List c(b.begin(), b.end());
+    assert(std::equal(c.begin(), c.end(), b.begin()));
+    for (auto it = c.rbegin(); it != c.rend(); ++it)
+        std::cout << *it << " ";
+    std::cout << std::endl;
 
-    Stack stack2;
-    stack2.push_range({1, 2, 3, 4, 5, 6, 7});
-    std::cout << "Stacks are equal: " << (Stack::is_equal(stack1, stack2) ? "Yes" : "No") << std::endl;
+    List d(c.rbegin(), c.rend());
+    for (auto it : d)
+        std::cout << it << " ";
+    std::cout << std::endl;
 
     return 0;
 }
