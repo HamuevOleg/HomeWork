@@ -20,6 +20,7 @@ public:
     List(unsigned int n); // Just create a clear value list with some size but constructor :|
     List(const int a[], size_t n); //Something like Make From array but constructor :|
     List(Iterator begin, Iterator end);
+
     List(std::reverse_iterator<Iterator> rbegin, std::reverse_iterator<Iterator> rend) {
         head = nullptr;
         tail = nullptr;
@@ -124,17 +125,17 @@ public:
     }
     auto end() const
     {
-        return Iterator(secretNode);
+        return Iterator(nullptr);
     }
     auto rbegin() const
     {
         // return ReverseIterator(end());
-        return ReverseIterator(Iterator(tail));
+        return ReverseIterator(Iterator(secretNode));
     }
     auto rend() const
     {
         // return ReverseIterator(begin());
-        return ReverseIterator(Iterator(secretNode));
+        return ReverseIterator(begin());
     }
 
     friend std::istream &operator>>(std::istream &is, List &list)
@@ -253,15 +254,12 @@ void List::clear() {
     tail = nullptr;
     size = 0;
 
-    secretNode->prev = nullptr;
-    secretNode->next = nullptr;
 }
 
 
 List::~List ()
 {
     clear();
-    delete secretNode;
 }
 
 List::List ()
@@ -623,6 +621,8 @@ List::List(Iterator begin, Iterator end) {
     for (Iterator it = begin; it != end; ++it) {
         pushBack(*it);
     }
+    secretNode = new Node();
+    secretNode->prev = tail;
 }
 
 int main(int argc, char const *argv[])
