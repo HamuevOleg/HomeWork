@@ -1,3 +1,0 @@
-C:/Users/user/Desktop/Univer 2/MN/Lab 2/array/cmake-build-debug/CMakeFiles/array.dir
-C:/Users/user/Desktop/Univer 2/MN/Lab 2/array/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/user/Desktop/Univer 2/MN/Lab 2/array/cmake-build-debug/CMakeFiles/rebuild_cache.dir
