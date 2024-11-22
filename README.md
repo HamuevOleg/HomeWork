@@ -1,2 +1,3 @@
-![image](https://github.com/user-attachments/assets/5f5c2d9a-1802-44f5-ad82-6ab405b7b1ef)
 
+
+![загружено](https://github.com/user-attachments/assets/3af40d50-857c-44d4-95a7-9a8efc3a4692)
