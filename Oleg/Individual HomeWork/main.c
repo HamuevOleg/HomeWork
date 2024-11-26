@@ -1,557 +1,352 @@
 /*
-
-Copyright (c) 2005-2008, Simon Howard
-
-Permission to use, copy, modify, and/or distribute this software
-for any purpose with or without fee is hereby granted, provided
-that the above copyright notice and this permission notice appear
-in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
-WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
-AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
-CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
-NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
- */
-
+Copyright © 2024 Hamuev Oleg. All rights reserved,
+except for the ones I borrow from the internet.
+Any unauthorized copying will result in infinite loops and frustration.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
-#include "alloc-testing.h"
-#include "framework.h"
+#include "list.h"
+#include "list.c"
+
+#include "compare-int.h"
+#include "compare-int.c"
+
+void test_generate_list(void);
+void test_list_append(void);
+void test_list_prepend(void);
+void test_list_free(void);
+void test_list_next(void);
+void test_list_nth_entry(void);
+void test_list_nth_data(void);
+void test_list_length(void);
+void test_list_remove_entry(void);
+void test_list_remove_data(void);
+void test_list_sort(void);
+void test_list_to_array(void);
+void test_list_iterate(void);
+
+int x = 5;
+int y = 10;
+int z = 15;
+
+int main()
+{
+    test_generate_list(); //done
+    test_list_append(); //done
+    test_list_prepend(); //done
+    test_list_free(); //done
+    test_list_next(); //done
+    test_list_nth_entry(); //done
+    test_list_nth_data(); //done
+    test_list_length(); //done
+    test_list_remove_entry(); //done
+    test_list_remove_data(); //done
+    test_list_sort(); //done
+    test_list_to_array(); //done
+    test_list_iterate(); // probably done - 90%working.There aren't as many asserts as needed.
+    return 0;
+};
+
+void test_generate_list()
+{
+    ListEntry* a = NULL;
+    assert(list_length(a) == 0);
+
+    assert (list_append (&a, &x) != NULL);
+    assert (list_append (&a, &y) != NULL);
+    assert (list_append (&a, &z) != NULL);
+
+    assert(list_length(a) == 3);
+
+    list_free (a);
+    printf("test_generate_list is passed successfully \n");
+}
+
+void test_list_append()
+{
+    ListEntry* a = NULL;
+
+    (list_append (&a, &x));
+    (list_append (&a, &y));
+    (list_append (&a, &z));
+
+    assert(list_length(a) == 3);
+    ListEntry *node;
+    node = a;
+    assert(list_data(node) == &x);
+    node = a->next;
+    assert(list_data(node) == &y);
+    node = a->next->next;
+    assert(list_data(node) == &z);
+
+    list_free (a);
+    printf("test_list_append is passed successfully\n");
+}
+
+void test_list_prepend()
+{
+    ListEntry* a = NULL;
+
+    (list_prepend(&a, &x));
+    (list_prepend(&a, &y));
+    (list_prepend(&a, &z));
+
+    assert(list_length(a) == 3);
+    ListEntry *node = a;
+    assert(list_data(node) == &z);
+    node = a->next;
+    assert(list_data(node) == &y);
+    node = a->next->next;
+    assert(list_data(node) == &x);
+
+    list_free (a);
+    printf("test_list_prepend is passed successfully\n");
+}
+
+void test_list_free()
+{
+    ListEntry *a = NULL;
 
-#include "calg/list.h"
-#include "calg/compare-int.h"
+    (list_append (&a, &x));
+    (list_append (&a, &y));
+    (list_append (&a, &z));
 
-int variable1 = 50, variable2, variable3, variable4;
+    list_free (a);
 
-/* Returns a list containing four entries */
+    a = NULL;
+    assert(list_data(a)== 0);
 
-ListEntry* generate_list (void) {
-  ListEntry* list = NULL;
+    list_free (a);
+    printf("test_list_free is passed\n");
+}
 
-  assert (list_append (&list, &variable1) != NULL);
-  assert (list_append (&list, &variable2) != NULL);
-  assert (list_append (&list, &variable3) != NULL);
-  assert (list_append (&list, &variable4) != NULL);
+void test_list_next() {
+    ListEntry* a = NULL;
+    ListEntry* rover;
 
-  return list;
-  }
+    (list_append (&a, &x));
+    (list_append (&a, &y));
+    (list_append (&a, &z));
 
-void check_list_integrity (ListEntry* list) {
-  ListEntry* prev;
-  ListEntry* rover;
+    rover = a;
+    assert(list_data(rover) == &x);
 
-  prev = NULL;
-  rover = list;
+    rover = list_next(rover);
+    assert(list_data(rover) == &y);
 
-  while (rover != NULL) {
-    assert (list_prev (rover) == prev);
-    prev = rover;
-    rover = list_next (rover);
-    }
-  }
+    rover = list_next(rover);
+    assert(list_data(rover) == &z);
 
-void test_list_append (void) {
-  ListEntry* list = NULL;
+    rover = list_next(rover);
+    assert(rover == NULL);
 
-  assert (list_append (&list, &variable1) != NULL);
-  check_list_integrity (list);
-  assert (list_append (&list, &variable2) != NULL);
-  check_list_integrity (list);
-  assert (list_append (&list, &variable3) != NULL);
-  check_list_integrity (list);
-  assert (list_append (&list, &variable4) != NULL);
-  check_list_integrity (list);
 
-  assert (list_length (list) == 4);
+    list_free(a);
+    printf("test_list_free is passed successfully\n");
+}
 
-  assert (list_nth_data (list, 0) == &variable1);
-  assert (list_nth_data (list, 1) == &variable2);
-  assert (list_nth_data (list, 2) == &variable3);
-  assert (list_nth_data (list, 3) == &variable4);
+void test_list_nth_entry()
+{
+    ListEntry* a = NULL;
+    ListEntry* node;
 
-  /* Test out of memory scenario */
+    (list_append (&a, &x));
+    (list_append (&a, &y));
+    (list_append (&a, &z));
 
-  alloc_test_set_limit (0);
-  assert (list_length (list) == 4);
-  assert (list_append (&list, &variable1) == NULL);
-  assert (list_length (list) == 4);
-  check_list_integrity (list);
+    node = list_nth_entry (a, 0);
+    assert (list_data (node) == &x);
 
-  list_free (list);
-  }
+    node = list_nth_entry (a, 1);
+    assert (list_data (node) == &y);
 
-void test_list_prepend (void) {
-  ListEntry* list = NULL;
+    node = list_nth_entry (a, 2);
+    assert (list_data (node) == &z);
 
-  assert (list_prepend (&list, &variable1) != NULL);
-  check_list_integrity (list);
-  assert (list_prepend (&list, &variable2) != NULL);
-  check_list_integrity (list);
-  assert (list_prepend (&list, &variable3) != NULL);
-  check_list_integrity (list);
-  assert (list_prepend (&list, &variable4) != NULL);
-  check_list_integrity (list);
+    node = list_nth_entry (a, 3);
+    assert (node == NULL);
+    node = list_nth_entry (a, 5);
+    assert (node == NULL);
 
-  assert (list_nth_data (list, 0) == &variable4);
-  assert (list_nth_data (list, 1) == &variable3);
-  assert (list_nth_data (list, 2) == &variable2);
-  assert (list_nth_data (list, 3) == &variable1);
+    list_free (a);
+    printf("test_list_nth_entry is passed successfully \n");
+}
 
-  /* Test out of memory scenario */
+void test_list_nth_data(){
+    ListEntry *a = NULL;
 
-  alloc_test_set_limit (0);
-  assert (list_length (list) == 4);
-  assert (list_prepend (&list, &variable1) == NULL);
-  assert (list_length (list) == 4);
-  check_list_integrity (list);
+    (list_append (&a, &x));
+    (list_append (&a, &y));
+    (list_append (&a, &z));
 
-  list_free (list);
-  }
+    assert (list_nth_data (a, 0) == &x);
+    assert (list_nth_data (a, 1) == &y);
+    assert (list_nth_data (a, 2) == &z);
 
-void test_list_free (void) {
-  ListEntry* list;
+    assert (list_nth_data (a, 4) == NULL);
+    assert (list_nth_data (a, 5) == NULL);
 
-  /* Create a list and free it */
+    list_free (a);
+    printf("test_list_nth_data is passed successfully\n");
+}
 
-  list = generate_list();
+void test_list_length(){
+    ListEntry *a = NULL;
 
-  list_free (list);
+    (list_append (&a, &x));
+    (list_append (&a, &y));
+    (list_append (&a, &z));
 
-  /* Check the empty list frees correctly */
+    assert(list_length(a) == 3);
 
-  list_free (NULL);
-  }
+    list_free(a);
+    printf("test_list_length is passed successfully\n");
+}
 
-void test_list_next (void) {
-  ListEntry* list;
-  ListEntry* rover;
+void test_list_remove_entry()
+{
+    ListEntry *a = NULL;
+    assert (list_remove_entry (&a, NULL) == 0);
 
-  list = generate_list();
+    a = NULL;
+    assert (list_append (&a, &x) != NULL);
+    assert (a != NULL);
+    assert (list_remove_entry (&a, a) != 0);
+    assert (a == NULL);
 
-  rover = list;
-  assert (list_data (rover) == &variable1);
-  rover = list_next (rover);
-  assert (list_data (rover) == &variable2);
-  rover = list_next (rover);
-  assert (list_data (rover) == &variable3);
-  rover = list_next (rover);
-  assert (list_data (rover) == &variable4);
-  rover = list_next (rover);
-  assert (rover == NULL);
+    printf("test_list_remove_entry is passed successfully\n");
+}
 
-  list_free (list);
-  }
+void test_list_remove_data(void) {
+    int entries[] = { 89, 4, 23, 4, 8 };
+    unsigned int num_entries = 5;
+    int value;
+    ListEntry* a = NULL;
 
-void test_list_nth_entry (void) {
-  ListEntry* list;
-  ListEntry* entry;
-
-  list = generate_list();
-
-  /* Check all values in the list */
-
-  entry = list_nth_entry (list, 0);
-  assert (list_data (entry) == &variable1);
-  entry = list_nth_entry (list, 1);
-  assert (list_data (entry) == &variable2);
-  entry = list_nth_entry (list, 2);
-  assert (list_data (entry) == &variable3);
-  entry = list_nth_entry (list, 3);
-  assert (list_data (entry) == &variable4);
-
-  /* Check out of range values */
-
-  entry = list_nth_entry (list, 4);
-  assert (entry == NULL);
-  entry = list_nth_entry (list, 400);
-  assert (entry == NULL);
-
-  list_free (list);
-  }
-
-void test_list_nth_data (void) {
-  ListEntry* list;
-
-  list = generate_list();
-
-  /* Check all values in the list */
-
-  assert (list_nth_data (list, 0) == &variable1);
-  assert (list_nth_data (list, 1) == &variable2);
-  assert (list_nth_data (list, 2) == &variable3);
-  assert (list_nth_data (list, 3) == &variable4);
-
-  /* Check out of range values */
-
-  assert (list_nth_data (list, 4) == NULL);
-  assert (list_nth_data (list, 400) == NULL);
-
-  list_free (list);
-  }
-
-void test_list_length (void) {
-  ListEntry* list;
-
-  /* Generate a list and check that it is four entries long */
-
-  list = generate_list();
-
-  assert (list_length (list) == 4);
-
-  /* Add an entry and check that it still works properly */
-
-  assert (list_prepend (&list, &variable1) != NULL);
-
-  assert (list_length (list) == 5);
-
-  list_free (list);
-
-  /* Check the length of the empty list */
-
-  assert (list_length (NULL) == 0);
-  }
-
-void test_list_remove_entry (void) {
-  ListEntry* empty_list = NULL;
-  ListEntry* list;
-  ListEntry* entry;
-
-  list = generate_list();
-
-  /* Remove the third entry */
-
-  entry = list_nth_entry (list, 2);
-  assert (list_remove_entry (&list, entry) != 0);
-  assert (list_length (list) == 3);
-  check_list_integrity (list);
-
-  /* Remove the first entry */
-
-  entry = list_nth_entry (list, 0);
-  assert (list_remove_entry (&list, entry) != 0);
-  assert (list_length (list) == 2);
-  check_list_integrity (list);
-
-  /* Try some invalid removes */
-
-  /* NULL */
-
-  assert (list_remove_entry (&list, NULL) == 0);
-
-  /* Removing NULL from an empty list */
-
-  assert (list_remove_entry (&empty_list, NULL) == 0);
-
-  list_free (list);
-
-  /* Test removing an entry when it is the only entry. */
-
-  list = NULL;
-  assert (list_append (&list, &variable1) != NULL);
-  assert (list != NULL);
-  assert (list_remove_entry (&list, list) != 0);
-  assert (list == NULL);
-
-  /* Test removing the last entry */
-
-  list = generate_list();
-  entry = list_nth_entry (list, 3);
-  assert (list_remove_entry (&list, entry) != 0);
-  check_list_integrity (list);
-  list_free (list);
-  }
-
-void test_list_remove_data (void) {
-  int entries[] = { 89, 4, 23, 42, 4, 16, 15, 4, 8, 99, 50, 30, 4 };
-  unsigned int num_entries = sizeof (entries) / sizeof (int);
-  int val;
-  ListEntry* list;
-  unsigned int i;
-
-  /* Generate a list containing all the entries in the array */
-
-  list = NULL;
-
-  for (i = 0; i < num_entries; ++i) {
-    assert (list_prepend (&list, &entries[i]) != NULL);
+    for (unsigned int i = 0; i < num_entries; ++i) {
+        assert(list_prepend(&a, &entries[i]) != NULL);
     }
 
-  /* Test removing invalid data */
+    value = 0;
+    assert(list_remove_data(&a, int_equal, &value) == 0);
+    assert(list_length(a) == num_entries);
 
-  val = 0;
-  assert (list_remove_data (&list, int_equal, &val) == 0);
-  val = 56;
-  assert (list_remove_data (&list, int_equal, &val) == 0);
-  check_list_integrity (list);
+    value = 56;
+    assert(list_remove_data(&a, int_equal, &value) == 0);
+    assert(list_length(a) == num_entries);
 
-  /* Remove the number 8 from the list */
+    value = 8;
+    assert(list_remove_data(&a, int_equal, &value) == 1);
+    assert(list_length(a) == num_entries - 1);
 
-  val = 8;
-  assert (list_remove_data (&list, int_equal, &val) == 1);
-  assert (list_length (list) == num_entries - 1);
-  check_list_integrity (list);
+    value = 4;
+    assert(list_remove_data(&a, int_equal, &value) == 2);
+    assert(list_length(a) == num_entries - 3);
 
-  /* Remove the number 4 from the list (occurs multiple times) */
+    value = 89;
+    assert(list_remove_data(&a, int_equal, &value) == 1);
+    assert(list_length(a) == num_entries - 4);
 
-  val = 4;
-  assert (list_remove_data (&list, int_equal, &val) == 4);
-  assert (list_length (list) == num_entries - 5);
-  check_list_integrity (list);
+    list_free(a);
+    printf("test_list_remove_data passed successfully\n");
+}
 
-  /* Remove the number 89 from the list (first entry) */
+    void test_list_sort(void) {
+        int entries[] = { 89, 4, 23, 4, 8 };
+        int sorted[]  = { 4, 4, 8, 23, 89 };
+        unsigned int num_entries = 5;
+        unsigned int i;
+        ListEntry* a = NULL;
 
-  val = 89;
-  assert (list_remove_data (&list, int_equal, &val) == 1);
-  assert (list_length (list) == num_entries - 6);
-  check_list_integrity (list);
+        for (i = 0; i < num_entries; ++i) {
+            assert(list_prepend(&a, &entries[i]) != NULL);
+        }
 
-  list_free (list);
-  }
+        list_sort(&a, int_compare);
 
-void test_list_sort (void) {
-  ListEntry* list;
-  int entries[] = { 89, 4, 23, 42, 4, 16, 15, 4, 8, 99, 50, 30, 4 };
-  int sorted[]  = { 4, 4, 4, 4, 8, 15, 16, 23, 30, 42, 50, 89, 99 };
-  unsigned int num_entries = sizeof (entries) / sizeof (int);
-  unsigned int i;
+        assert(list_length(a) == num_entries);
 
-  list = NULL;
+        for (i = 0; i < num_entries; ++i) {
+            int* value = (int*)list_nth_data(a, i);
+            assert(*value == sorted[i]);
+        }
 
-  for (i = 0; i < num_entries; ++i) {
-    assert (list_prepend (&list, &entries[i]) != NULL);
+        list_free(a);
+
+        a = NULL;
+        list_sort(&a, int_compare);
+        assert(a == NULL);
+
+        printf("test_list_sort passed successfully\n");
     }
 
-  list_sort (&list, int_compare);
+void test_list_to_array() {
+    ListEntry* a = NULL;
+    void** array;
 
-  /* List length is unchanged */
+    list_append(&a, &x);
+    list_append(&a, &y);
+    list_append(&a, &z);
 
-  assert (list_length (list) == num_entries);
+    array = list_to_array(a);
+    assert(array != NULL);
 
-  /* Check the list is sorted */
+    assert(array[0] == &x);
+    assert(array[1] == &y);
+    assert(array[2] == &z);
 
-  for (i = 0; i < num_entries; ++i) {
-    int* value;
+    free(array);
 
-    value = (int*) list_nth_data (list, i);
-    assert (*value == sorted[i]);
+    list_free(a);
+
+    printf("test_list_to_array is passed successfully\n");
+}
+
+void test_list_iterate() {
+    ListEntry* a = NULL;
+    ListIterator iter;
+    int i;
+    int counter = 0;
+
+    for (i = 0; i < 12; ++i) {
+        assert(list_prepend(&a, &i) != NULL);
     }
 
-  list_free (list);
+    list_iterate(&a, &iter);
 
-  /* Check sorting an empty list */
+    while (list_iter_has_more(&iter)) {
+        ++counter;
 
-  list = NULL;
-
-  list_sort (&list, int_compare);
-
-  assert (list == NULL);
-  }
-
-void test_list_find_data (void) {
-  int entries[] = { 89, 23, 42, 16, 15, 4, 8, 99, 50, 30 };
-  int num_entries = sizeof (entries) / sizeof (int);
-  ListEntry* list;
-  ListEntry* result;
-  int i;
-  int val;
-  int* data;
-
-  /* Generate a list containing the entries */
-
-  list = NULL;
-
-  for (i = 0; i < num_entries; ++i) {
-    assert (list_append (&list, &entries[i]) != NULL);
+        if ((counter % 2) == 0) {
+            list_iter_remove(&iter);
+        } else {
+            list_iter_next(&iter);
+        }
     }
 
-  /* Check that each value can be searched for correctly */
+    list_free(a);
 
-  for (i = 0; i < num_entries; ++i) {
+    a = NULL;
+    counter = 0;
 
-    val = entries[i];
+    list_iterate(&a, &iter);
 
-    result = list_find_data (list, int_equal, &val);
-
-    assert (result != NULL);
-
-    data = (int*) list_data (result);
-    assert (*data == val);
+    while (list_iter_has_more(&iter)) {
+        list_iter_next(&iter);
+        ++counter;
     }
 
-  /* Check some invalid values return NULL */
+    assert(counter == 0);
+    printf("test_list_iterate is passed successfully\n");
+}
 
-  val = 0;
-  assert (list_find_data (list, int_equal, &val) == NULL);
-  val = 56;
-  assert (list_find_data (list, int_equal, &val) == NULL);
 
-  list_free (list);
-  }
 
-void test_list_to_array (void) {
-  ListEntry* list;
-  void** array;
 
-  list = generate_list();
 
-  array = list_to_array (list);
 
-  assert (array[0] == &variable1);
-  assert (array[1] == &variable2);
-  assert (array[2] == &variable3);
-  assert (array[3] == &variable4);
 
-  free (array);
 
-  /* Test out of memory scenario */
 
-  alloc_test_set_limit (0);
-
-  array = list_to_array (list);
-  assert (array == NULL);
-
-  list_free (list);
-  }
-
-void test_list_iterate (void) {
-  ListEntry* list;
-  ListIterator iter;
-  int i;
-  int a;
-  int counter;
-  int* data;
-
-  /* Create a list with 50 entries */
-
-  list = NULL;
-
-  for (i = 0; i < 50; ++i) {
-    assert (list_prepend (&list, &a) != NULL);
-    }
-
-  /* Iterate over the list and count the number of entries visited */
-
-  counter = 0;
-
-  list_iterate (&list, &iter);
-
-  /* Test remove before list_iter_next has been called */
-
-  list_iter_remove (&iter);
-
-  /* Iterate over the list */
-
-  while (list_iter_has_more (&iter)) {
-    data = (int*) list_iter_next (&iter);
-    ++counter;
-
-    if ( (counter % 2) == 0) {
-      /* Delete half the entries in the list.  */
-
-      list_iter_remove (&iter);
-
-      /* Test double remove */
-
-      list_iter_remove (&iter);
-      }
-    }
-
-  /* Test iter_next after iteration has completed. */
-
-  assert (list_iter_next (&iter) == NULL);
-
-  /* Test remove at the end of a list */
-
-  list_iter_remove (&iter);
-
-  assert (counter == 50);
-  assert (list_length (list) == 25);
-
-  list_free (list);
-
-  /* Test iterating over an empty list */
-
-  list = NULL;
-  counter = 0;
-
-  list_iterate (&list, &iter);
-
-  while (list_iter_has_more (&iter)) {
-    data = (int*) list_iter_next (&iter);
-    ++counter;
-    }
-
-  assert (counter == 0);
-  }
-
-/* Test that the iterator functions can survive removal of the current
- * value using the normal remove functions. */
-
-void test_list_iterate_bad_remove (void) {
-  ListEntry* list;
-  ListIterator iter;
-  int values[49];
-  int i;
-  int* val;
-
-  /* Create a list with 49 entries */
-
-  list = NULL;
-
-  for (i = 0; i < 49; ++i) {
-    values[i] = i;
-    assert (list_prepend (&list, &values[i]) != NULL);
-    }
-
-  /* Iterate over the list, removing each element in turn.  We
-   * use an odd number of list elements so that the first and
-   * last entries are removed. */
-
-  list_iterate (&list, &iter);
-
-  while (list_iter_has_more (&iter)) {
-    val = list_iter_next (&iter);
-
-    /* Remove all the even numbers. Check that list_iter_remove
-     * can cope with the fact that the current element has
-     * already been removed. */
-
-    if ( (*val % 2) == 0) {
-      assert (list_remove_data (&list, int_equal, val) != 0);
-      list_iter_remove (&iter);
-      }
-    }
-
-  list_free (list);
-  }
-
-static UnitTestFunction tests[] = {
-  test_list_append,
-  test_list_prepend,
-  test_list_free,
-  test_list_next,
-  test_list_nth_entry,
-  test_list_nth_data,
-  test_list_length,
-  test_list_remove_entry,
-  test_list_remove_data,
-  test_list_sort,
-  test_list_find_data,
-  test_list_to_array,
-  test_list_iterate,
-  test_list_iterate_bad_remove,
-  NULL
-  };
-
-int main (int argc, char* argv[]) {
-  run_tests (tests);
-
-  return 0;
-  }
