@@ -1,0 +1,45 @@
+==========================================================
+             La Placinte SECURITY MANAGEMENT SYSTEM
+                COMPREHENSIVE SYSTEM REPORT
+                 Generated: 2025-04-26 10:56:30
+==========================================================
+
+SYSTEM OVERVIEW
+----------------------------------------------------------
+Documents registered: 2
+Risks identified: 1
+Controls implemented: 1
+Audits conducted: 1
+Incidents reported: 1
+
+RISK SUMMARY
+----------------------------------------------------------
+Active risks: 1
+Mitigated risks: 0
+Risk breakdown by severity:
+  Critical: 0
+  High: 0
+  Medium: 0
+  Low: 1
+
+INCIDENT SUMMARY
+----------------------------------------------------------
+Open incidents: 0
+Resolved incidents: 1
+Open incident breakdown by severity:
+  Critical: 0
+  High: 0
+  Medium: 0
+  Low: 0
+
+LOCATION RISK PROFILE
+----------------------------------------------------------
+Location                      Active Risks    Open Incidents
+----------------------------------------------------------
+La Placinte - Central          1               0              
+
+CRITICAL ITEMS REQUIRING ATTENTION
+----------------------------------------------------------
+No critical items requiring immediate attention.
+
+--- End of Report ---

@@ -1,0 +1,30 @@
+=== La Placinte ===
+Risk Register
+Generated: 2025-04-26 10:53:04
+
+Total risks: 1
+
+Risk Summary:
+  Active risks: 1
+  Mitigated risks: 0
+
+Active Risk Distribution:
+  Critical: 0
+  High: 0
+  Medium: 0
+  Low: 1
+
+Detailed Risk Register:
+------------------------------------------------
+
+Risk ID: 1
+Name: gay
+Description: danila is gay
+Level: Low
+Location: La Placinte - Central
+Owner: High
+Identification date: 2025-04-26 10:52:40
+Status: Active
+Mitigation plan: Plan not defined
+------------------------------------------------
+
